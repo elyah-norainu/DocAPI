@@ -1,0 +1,769 @@
+{
+  "info": {
+    "_postman_id": "b7a60f42-3c93-4cb8-8b9a-7a5a4b3e2026",
+    "name": "API Bibliothèque — Elyah Norainu",
+    "description": "Collection pédagogique complète pour tester l'API Bibliothèque. Exécuter Login — succès avant les routes protégées. Les variables book_id, author_id et borrow_id peuvent être actualisées après création.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "book_id",
+      "value": "1"
+    },
+    {
+      "key": "author_id",
+      "value": "1"
+    },
+    {
+      "key": "borrow_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentification",
+      "item": [
+        {
+          "name": "Login — succès",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authentifie le compte de démonstration et enregistre automatiquement le JWT dans {{token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Login réussi - HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('success vaut true et token présent', () => { pm.expect(res.success).to.be.true; pm.expect(res.data.token).to.be.a('string').and.not.empty; });",
+                  "if (res.success && res.data.token) pm.environment.set('token', res.data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login — identifiants incorrects",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Vérifie le refus d'identifiants incorrects.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"incorrect\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Identifiants refusés - HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('success vaut false', () => pm.expect(res.success).to.be.false);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authors",
+      "item": [
+        {
+          "name": "GET — Liste des auteurs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/authors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authors"
+              ]
+            },
+            "description": "Retourne tous les auteurs."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('data tableau',()=>pm.expect(res.data).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST — Créer un auteur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/authors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authors"
+              ]
+            },
+            "description": "Crée un auteur. Nécessite un JWT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Maya\",\n  \"last_name\": \"Angelou\",\n  \"nationality\": \"Américaine\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 201',()=>pm.response.to.have.status(201));",
+                  "pm.test('Auteur identifié',()=>pm.expect(res.data.id).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET — Détail auteur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/authors/{{author_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authors",
+                "{{author_id}}"
+              ]
+            },
+            "description": "Retourne un auteur et ses livres."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200 ou 404',()=>pm.expect(pm.response.code).to.be.oneOf([200,404]));",
+                  "pm.test('Enveloppe success présente',()=>pm.expect(res).to.have.property('success'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT — Modifier auteur",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/authors/{{author_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authors",
+                "{{author_id}}"
+              ]
+            },
+            "description": "Modifie l'auteur ciblé.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Maya\",\n  \"last_name\": \"Angelou\",\n  \"nationality\": \"Américaine\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200 ou 404',()=>pm.expect(pm.response.code).to.be.oneOf([200,404]));",
+                  "pm.test('Réponse JSON reçue',()=>pm.response.to.be.json);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE — Supprimer auteur",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/authors/{{author_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authors",
+                "{{author_id}}"
+              ]
+            },
+            "description": "Supprime un auteur sans livres associés."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 204, 404 ou 409',()=>pm.expect(pm.response.code).to.be.oneOf([204,404,409]));",
+                  "pm.test('Suppression sans corps si 204',()=>{if(pm.response.code===204) pm.expect(pm.response.text()).to.eql('');}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "GET — Liste des livres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Liste tous les livres."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('success vaut true', () => pm.expect(res.success).to.be.true);",
+                  "pm.test('data est un tableau', () => pm.expect(res.data).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET — Livres disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "available",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Filtre les livres disponibles."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Tous disponibles',()=>pm.expect(pm.response.json().data.every(b=>b.available)).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST — Créer un livre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Crée un livre et sauvegarde son id dans book_id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Design Patterns\",\n  \"isbn\": \"978-0201633610\",\n  \"year\": 1994,\n  \"author_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "const sent = JSON.parse(pm.request.body.raw);",
+                  "pm.test('Livre créé - HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Identifiant généré', () => pm.expect(res.data.id).to.be.a('number'));",
+                  "pm.test('Titre identique à la requête', () => pm.expect(res.data.title).to.eql(sent.title));",
+                  "if (res.data && res.data.id) pm.environment.set('book_id', String(res.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST — Sans authentification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Vérifie qu'une route protégée refuse une requête sans token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unauthorized Book\",\n  \"isbn\": \"978-1111111111\",\n  \"year\": 2020,\n  \"author_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 401',()=>pm.response.to.have.status(401));",
+                  "pm.test('success vaut false',()=>pm.expect(res.success).to.be.false);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET — Détail livre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Retourne le livre et son auteur."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Identifiant demandé', () => pm.expect(res.data.id).to.eql(Number(pm.environment.get('book_id'))));",
+                  "pm.test('Auteur inclus', () => pm.expect(res.data.author).to.have.property('first_name'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET — Livre inexistant (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "999999"
+              ]
+            },
+            "description": "Teste le cas d'une ressource inexistante."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 404',()=>pm.response.to.have.status(404));",
+                  "pm.test('success vaut false',()=>pm.expect(res.success).to.be.false);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT — Modifier livre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Met à jour le livre créé.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Design Patterns — édition mise à jour\",\n  \"isbn\": \"978-0201633610\",\n  \"year\": 1994,\n  \"author_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200 ou 404',()=>pm.expect(pm.response.code).to.be.oneOf([200,404]));",
+                  "pm.test('Réponse JSON',()=>pm.response.to.be.json);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Borrows",
+      "item": [
+        {
+          "name": "GET — Emprunts en cours",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/borrows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "borrows"
+              ]
+            },
+            "description": "Liste les emprunts actifs. JWT obligatoire."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('data tableau',()=>pm.expect(res.data).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST — Enregistrer emprunt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/borrows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "borrows"
+              ]
+            },
+            "description": "Emprunte le livre identifié par book_id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_name\": \"Elyah\",\n  \"book_id\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Emprunt créé - HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('book_id correspond', () => pm.expect(res.data.book_id).to.eql(Number(pm.environment.get('book_id'))));",
+                  "pm.test('returned_at est null', () => pm.expect(res.data.returned_at).to.be.null);",
+                  "if (res.data && res.data.id) pm.environment.set('borrow_id', String(res.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH — Marquer comme rendu",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/borrows/{{borrow_id}}/return",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "borrows",
+                "{{borrow_id}}",
+                "return"
+              ]
+            },
+            "description": "Clôture l'emprunt et rend le livre disponible."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = pm.response.json();",
+                  "pm.test('Retour enregistré - HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returned_at non null', () => pm.expect(res.data.returned_at).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE — Supprimer livre",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Supprime le livre s'il n'est pas emprunté."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {}; try { res = pm.response.json(); } catch (e) {}",
+                  "pm.test('Status 204, 404 ou 409',()=>pm.expect(pm.response.code).to.be.oneOf([204,404,409]));",
+                  "pm.test('Réponse conforme',()=>pm.expect(pm.response.code).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

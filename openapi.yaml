@@ -1,0 +1,377 @@
+openapi: 3.0.3
+info:
+  title: API Bibliothèque
+  version: 1.0.0
+  description: API REST de gestion d'une bibliothèque — auteurs, livres et emprunts.
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Serveur local de développement
+tags:
+  - name: Authentification
+  - name: Authors
+  - name: Books
+  - name: Borrows
+paths:
+  /auth/login:
+    post:
+      tags: [Authentification]
+      summary: Authentifier un utilisateur
+      description: Retourne un JWT à utiliser dans l'en-tête Authorization des routes protégées.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginInput' }
+      responses:
+        '200':
+          description: Authentification réussie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { description: Identifiants incorrects }
+        '422':
+          description: Données invalides
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /authors:
+    get:
+      tags: [Authors]
+      summary: Lister les auteurs
+      responses:
+        '200':
+          description: Liste des auteurs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Author' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Authors]
+      summary: Créer un auteur
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAuthorInput' }
+      responses:
+        '201':
+          description: Auteur créé
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Author' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /authors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Authors]
+      summary: Consulter un auteur et ses livres
+      responses:
+        '200':
+          description: Auteur et livres associés
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AuthorWithBooks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    put:
+      tags: [Authors]
+      summary: Modifier un auteur
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAuthorInput' }
+      responses:
+        '200': { description: Auteur modifié }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Authors]
+      summary: Supprimer un auteur sans livre associé
+      security: [{ BearerAuth: [] }]
+      responses:
+        '204': { description: Auteur supprimé, aucune réponse }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /books:
+    get:
+      tags: [Books]
+      summary: Lister les livres
+      parameters:
+        - name: available
+          in: query
+          description: Filtrer par disponibilité
+          required: false
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Liste des livres
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Books]
+      summary: Ajouter un livre
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookInput' }
+      responses:
+        '201': { description: Livre créé }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /books/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Books]
+      summary: Consulter un livre et son auteur
+      responses:
+        '200':
+          description: Livre et auteur
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    put:
+      tags: [Books]
+      summary: Modifier un livre
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateBookInput' }
+      responses:
+        '200': { description: Livre modifié }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Books]
+      summary: Supprimer un livre non emprunté
+      security: [{ BearerAuth: [] }]
+      responses:
+        '204': { description: Livre supprimé, aucune réponse }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /borrows:
+    get:
+      tags: [Borrows]
+      summary: Lister les emprunts en cours
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Liste des emprunts actifs }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Borrows]
+      summary: Enregistrer un emprunt
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BorrowInput' }
+      responses:
+        '201': { description: Emprunt enregistré }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /borrows/{id}/return:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    patch:
+      tags: [Borrows]
+      summary: Marquer un livre comme rendu
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Retour enregistré }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Identifiant numérique de la ressource
+      schema: { type: integer, minimum: 1 }
+  responses:
+    Unauthorized:
+      description: Token JWT absent, invalide ou expiré
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ValidationError:
+      description: Validation échouée
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [success, data, message]
+      properties:
+        success: { type: boolean, example: true }
+        data: {}
+        message: { type: string, example: Opération réussie. }
+    ErrorResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean, example: false }
+        data: { nullable: true }
+        message: { type: string, example: Validation échouée. }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+    Author:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        first_name: { type: string, example: Robert }
+        last_name: { type: string, example: Martin }
+        nationality: { type: string, example: Américaine }
+    AuthorWithBooks:
+      allOf:
+        - $ref: '#/components/schemas/Author'
+        - type: object
+          properties:
+            books:
+              type: array
+              items: { $ref: '#/components/schemas/BookSummary' }
+    BookSummary:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: Clean Code }
+        isbn: { type: string, example: 978-0132350884 }
+        year: { type: integer, example: 2008 }
+        available: { type: boolean, example: true }
+        author_id: { type: integer, example: 1 }
+    Book:
+      allOf:
+        - $ref: '#/components/schemas/BookSummary'
+        - type: object
+          properties:
+            author: { $ref: '#/components/schemas/Author' }
+    Borrow:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        user_name: { type: string, example: Jean }
+        book_id: { type: integer, example: 1 }
+        borrowed_at: { type: string, format: date-time }
+        returned_at: { type: string, format: date-time, nullable: true }
+    CreateAuthorInput:
+      type: object
+      required: [first_name, last_name, nationality]
+      properties:
+        first_name: { type: string, example: Robert }
+        last_name: { type: string, example: Martin }
+        nationality: { type: string, example: Américaine }
+    UpdateAuthorInput:
+      allOf: [{ $ref: '#/components/schemas/CreateAuthorInput' }]
+    CreateBookInput:
+      type: object
+      required: [title, isbn, year, author_id]
+      properties:
+        title: { type: string, example: Clean Code }
+        isbn: { type: string, example: 978-0132350884 }
+        year: { type: integer, example: 2008 }
+        available: { type: boolean, default: true }
+        author_id: { type: integer, example: 1 }
+    UpdateBookInput:
+      allOf: [{ $ref: '#/components/schemas/CreateBookInput' }]
+    BorrowInput:
+      type: object
+      required: [user_name, book_id]
+      properties:
+        user_name: { type: string, example: Jean }
+        book_id: { type: integer, example: 2 }
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: admin }
+        password: { type: string, format: password, example: admin123 }
+    AuthPayload:
+      type: object
+      properties:
+        token: { type: string, description: JWT }
+        token_type: { type: string, example: Bearer }
+        expires_in: { type: string, example: 2h }
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            username: { type: string }
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/AuthPayload' }

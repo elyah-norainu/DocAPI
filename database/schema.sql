@@ -1,0 +1,36 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS authors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  nationality TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  isbn TEXT NOT NULL UNIQUE,
+  year INTEGER NOT NULL,
+  available INTEGER NOT NULL DEFAULT 1 CHECK (available IN (0, 1)),
+  author_id INTEGER NOT NULL,
+  FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS borrows (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_name TEXT NOT NULL,
+  book_id INTEGER NOT NULL,
+  borrowed_at TEXT NOT NULL,
+  returned_at TEXT DEFAULT NULL,
+  FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_books_author_id ON books(author_id);
+CREATE INDEX IF NOT EXISTS idx_borrows_book_id ON borrows(book_id);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL
+);

@@ -1,0 +1,28 @@
+CAPTURES ET VIDEO A REALISER PERSONNELLEMENT
+
+Les captures réelles et la vidéo Postman ne peuvent pas être fabriquées à ta place : elles doivent montrer l'exécution effective de ton API sur ton ordinateur.
+
+1. Lancer le projet :
+   npm install
+   cp .env.example .env
+   (modifier JWT_SECRET)
+   npm run seed
+   npm start
+
+2. Swagger :
+   ouvrir http://localhost:8000/api/docs
+   faire une capture montrant les groupes Authentification, Authors, Books et Borrows.
+   Dans POST /auth/login, tester admin / admin123.
+   Copier le token, cliquer sur Authorize, saisir le token, puis tester GET /books.
+   Faire une capture du résultat réussi.
+
+3. Postman :
+   importer collection_bibliotheque_Elyah_Norainu.json
+   importer env_dev_Elyah_Norainu.json et sélectionner cet environnement.
+   Exécuter d'abord « Login — succès », puis les requêtes de test.
+   Pour éviter les dépendances d'ordre, vérifier book_id=5 pour l'emprunt (le livre seedé n°5 est disponible).
+   Faire une capture du Runner avec les tests réussis et enregistrer une courte vidéo montrant login puis quelques requêtes.
+
+4. Attention :
+   l'environnement Production est un modèle à adapter à une vraie URL déployée.
+   Ne prétends pas avoir réalisé des captures ou une vidéo si tu ne les as pas enregistrées.
