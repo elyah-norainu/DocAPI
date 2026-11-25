@@ -1,16 +1,23 @@
+
 openapi: 3.0.3
+
 info:
   title: API Bibliothèque
   version: 1.0.0
-  description: API REST de gestion d'une bibliothèque — auteurs, livres et emprunts.
+  description: API REST de gestion d'une bibliothèque — auteurs, livres, emprunts et abonnements Premium.
+
 servers:
   - url: http://localhost:8000/api/v1
     description: Serveur local de développement
+
 tags:
   - name: Authentification
   - name: Authors
   - name: Books
   - name: Borrows
+  - name: Subscriptions
+  - name: Webhooks
+
 paths:
   /auth/login:
     post:
@@ -21,19 +28,24 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/LoginInput' }
+            schema:
+              $ref: '#/components/schemas/LoginInput'
       responses:
         '200':
           description: Authentification réussie
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AuthResponse' }
-        '401': { description: Identifiants incorrects }
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Identifiants incorrects
         '422':
           description: Données invalides
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /authors:
     get:
       tags: [Authors]
@@ -50,19 +62,26 @@ paths:
                     properties:
                       data:
                         type: array
-                        items: { $ref: '#/components/schemas/Author' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+                        items:
+                          $ref: '#/components/schemas/Author'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     post:
       tags: [Authors]
       summary: Créer un auteur
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/CreateAuthorInput' }
+            schema:
+              $ref: '#/components/schemas/CreateAuthorInput'
       responses:
         '201':
           description: Auteur créé
@@ -73,13 +92,19 @@ paths:
                   - $ref: '#/components/schemas/SuccessResponse'
                   - type: object
                     properties:
-                      data: { $ref: '#/components/schemas/Author' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+                      data:
+                        $ref: '#/components/schemas/Author'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /authors/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
+
     get:
       tags: [Authors]
       summary: Consulter un auteur et ses livres
@@ -93,33 +118,51 @@ paths:
                   - $ref: '#/components/schemas/SuccessResponse'
                   - type: object
                     properties:
-                      data: { $ref: '#/components/schemas/AuthorWithBooks' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+                      data:
+                        $ref: '#/components/schemas/AuthorWithBooks'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     put:
       tags: [Authors]
       summary: Modifier un auteur
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/UpdateAuthorInput' }
+            schema:
+              $ref: '#/components/schemas/UpdateAuthorInput'
       responses:
-        '200': { description: Auteur modifié }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '200':
+          description: Auteur modifié
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     delete:
       tags: [Authors]
       summary: Supprimer un auteur sans livre associé
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       responses:
-        '204': { description: Auteur supprimé, aucune réponse }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '204':
+          description: Auteur supprimé, aucune réponse
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /books:
     get:
       tags: [Books]
@@ -129,7 +172,8 @@ paths:
           in: query
           description: Filtrer par disponibilité
           required: false
-          schema: { type: boolean }
+          schema:
+            type: boolean
       responses:
         '200':
           description: Liste des livres
@@ -142,27 +186,40 @@ paths:
                     properties:
                       data:
                         type: array
-                        items: { $ref: '#/components/schemas/Book' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+                        items:
+                          $ref: '#/components/schemas/Book'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     post:
       tags: [Books]
       summary: Ajouter un livre
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/CreateBookInput' }
+            schema:
+              $ref: '#/components/schemas/CreateBookInput'
       responses:
-        '201': { description: Livre créé }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '201':
+          description: Livre créé
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /books/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
+
     get:
       tags: [Books]
       summary: Consulter un livre et son auteur
@@ -176,125 +233,285 @@ paths:
                   - $ref: '#/components/schemas/SuccessResponse'
                   - type: object
                     properties:
-                      data: { $ref: '#/components/schemas/Book' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+                      data:
+                        $ref: '#/components/schemas/Book'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     put:
       tags: [Books]
       summary: Modifier un livre
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/UpdateBookInput' }
+            schema:
+              $ref: '#/components/schemas/UpdateBookInput'
       responses:
-        '200': { description: Livre modifié }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '200':
+          description: Livre modifié
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     delete:
       tags: [Books]
       summary: Supprimer un livre non emprunté
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       responses:
-        '204': { description: Livre supprimé, aucune réponse }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '204':
+          description: Livre supprimé, aucune réponse
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /borrows:
     get:
       tags: [Borrows]
       summary: Lister les emprunts en cours
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: Liste des emprunts actifs }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '200':
+          description: Liste des emprunts actifs
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
     post:
       tags: [Borrows]
       summary: Enregistrer un emprunt
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/BorrowInput' }
+            schema:
+              $ref: '#/components/schemas/BorrowInput'
       responses:
-        '201': { description: Emprunt enregistré }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '201':
+          description: Emprunt enregistré
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Limite d'emprunts du compte Free atteinte
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /borrows/{id}/return:
     parameters:
       - $ref: '#/components/parameters/Id'
+
     patch:
       tags: [Borrows]
       summary: Marquer un livre comme rendu
-      security: [{ BearerAuth: [] }]
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: Retour enregistré }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422': { $ref: '#/components/responses/ValidationError' }
+        '200':
+          description: Retour enregistré
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /subscriptions/payment-intent:
+    post:
+      tags: [Subscriptions]
+      summary: Créer une intention de paiement Premium
+      description: Crée un paiement local simulé de 500 EUR. Aucun paiement réel n'est effectué.
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Intention de paiement créée
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentIntentData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Le compte possède déjà un abonnement Premium
+
+  /subscriptions/status:
+    get:
+      tags: [Subscriptions]
+      summary: Consulter le statut de son abonnement
+      description: Retourne le statut Premium ou Free et l'historique des paiements de l'utilisateur connecté.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Statut de l'abonnement récupéré
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SubscriptionStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Confirmer un paiement simulé
+      description: Simule la réception d'une confirmation de paiement. Cette route ne communique pas réellement avec Stripe. Le secret est vérifié dans l'en-tête x-simulation-secret.
+      parameters:
+        - name: x-simulation-secret
+          in: header
+          required: true
+          description: Secret local défini dans SIMULATED_WEBHOOK_SECRET du fichier .env.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookInput'
+      responses:
+        '200':
+          description: Paiement confirmé et abonnement Premium activé
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WebhookData'
+        '401':
+          description: Secret de simulation manquant ou invalide
+        '404':
+          description: Paiement introuvable
+        '409':
+          description: Paiement déjà confirmé ou impossible à confirmer
+        '422':
+          description: Identifiant de paiement invalide
+
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
   parameters:
     Id:
       name: id
       in: path
       required: true
       description: Identifiant numérique de la ressource
-      schema: { type: integer, minimum: 1 }
+      schema:
+        type: integer
+        minimum: 1
+
   responses:
     Unauthorized:
       description: Token JWT absent, invalide ou expiré
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
     NotFound:
       description: Ressource introuvable
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
     ValidationError:
       description: Validation échouée
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
   schemas:
     SuccessResponse:
       type: object
       required: [success, data, message]
       properties:
-        success: { type: boolean, example: true }
+        success:
+          type: boolean
+          example: true
         data: {}
-        message: { type: string, example: Opération réussie. }
+        message:
+          type: string
+          example: Opération réussie.
+
     ErrorResponse:
       type: object
       required: [success, message]
       properties:
-        success: { type: boolean, example: false }
-        data: { nullable: true }
-        message: { type: string, example: Validation échouée. }
+        success:
+          type: boolean
+          example: false
+        data:
+          nullable: true
+        message:
+          type: string
+          example: Validation échouée.
         errors:
           type: object
           additionalProperties:
             type: array
-            items: { type: string }
+            items:
+              type: string
+
     Author:
       type: object
       properties:
-        id: { type: integer, example: 1 }
-        first_name: { type: string, example: Robert }
-        last_name: { type: string, example: Martin }
-        nationality: { type: string, example: Américaine }
+        id:
+          type: integer
+          example: 1
+        first_name:
+          type: string
+          example: Robert
+        last_name:
+          type: string
+          example: Martin
+        nationality:
+          type: string
+          example: Américaine
+
     AuthorWithBooks:
       allOf:
         - $ref: '#/components/schemas/Author'
@@ -302,76 +519,239 @@ components:
           properties:
             books:
               type: array
-              items: { $ref: '#/components/schemas/BookSummary' }
+              items:
+                $ref: '#/components/schemas/BookSummary'
+
     BookSummary:
       type: object
       properties:
-        id: { type: integer, example: 1 }
-        title: { type: string, example: Clean Code }
-        isbn: { type: string, example: 978-0132350884 }
-        year: { type: integer, example: 2008 }
-        available: { type: boolean, example: true }
-        author_id: { type: integer, example: 1 }
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Clean Code
+        isbn:
+          type: string
+          example: 978-0132350884
+        year:
+          type: integer
+          example: 2008
+        available:
+          type: boolean
+          example: true
+        author_id:
+          type: integer
+          example: 1
+
     Book:
       allOf:
         - $ref: '#/components/schemas/BookSummary'
         - type: object
           properties:
-            author: { $ref: '#/components/schemas/Author' }
+            author:
+              $ref: '#/components/schemas/Author'
+
     Borrow:
       type: object
       properties:
-        id: { type: integer, example: 1 }
-        user_name: { type: string, example: Jean }
-        book_id: { type: integer, example: 1 }
-        borrowed_at: { type: string, format: date-time }
-        returned_at: { type: string, format: date-time, nullable: true }
+        id:
+          type: integer
+          example: 1
+        user_name:
+          type: string
+          example: Jean
+        book_id:
+          type: integer
+          example: 1
+        borrowed_at:
+          type: string
+          format: date-time
+        returned_at:
+          type: string
+          format: date-time
+          nullable: true
+        payment_status:
+          type: string
+          enum: [pending, paid, free]
+          example: free
+        user_id:
+          type: integer
+          example: 1
+
     CreateAuthorInput:
       type: object
       required: [first_name, last_name, nationality]
       properties:
-        first_name: { type: string, example: Robert }
-        last_name: { type: string, example: Martin }
-        nationality: { type: string, example: Américaine }
+        first_name:
+          type: string
+          example: Robert
+        last_name:
+          type: string
+          example: Martin
+        nationality:
+          type: string
+          example: Américaine
+
     UpdateAuthorInput:
-      allOf: [{ $ref: '#/components/schemas/CreateAuthorInput' }]
+      allOf:
+        - $ref: '#/components/schemas/CreateAuthorInput'
+
     CreateBookInput:
       type: object
       required: [title, isbn, year, author_id]
       properties:
-        title: { type: string, example: Clean Code }
-        isbn: { type: string, example: 978-0132350884 }
-        year: { type: integer, example: 2008 }
-        available: { type: boolean, default: true }
-        author_id: { type: integer, example: 1 }
+        title:
+          type: string
+          example: Clean Code
+        isbn:
+          type: string
+          example: 978-0132350884
+        year:
+          type: integer
+          example: 2008
+        available:
+          type: boolean
+          default: true
+        author_id:
+          type: integer
+          example: 1
+
     UpdateBookInput:
-      allOf: [{ $ref: '#/components/schemas/CreateBookInput' }]
+      allOf:
+        - $ref: '#/components/schemas/CreateBookInput'
+
     BorrowInput:
       type: object
       required: [user_name, book_id]
       properties:
-        user_name: { type: string, example: Jean }
-        book_id: { type: integer, example: 2 }
+        user_name:
+          type: string
+          example: Jean
+        book_id:
+          type: integer
+          example: 2
+
     LoginInput:
       type: object
       required: [username, password]
       properties:
-        username: { type: string, example: admin }
-        password: { type: string, format: password, example: admin123 }
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: admin123
+
     AuthPayload:
       type: object
       properties:
-        token: { type: string, description: JWT }
-        token_type: { type: string, example: Bearer }
-        expires_in: { type: string, example: 2h }
+        token:
+          type: string
+          description: JWT
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: string
+          example: 2h
         user:
           type: object
           properties:
-            id: { type: integer }
-            username: { type: string }
+            id:
+              type: integer
+            username:
+              type: string
+
     AuthResponse:
       allOf:
         - $ref: '#/components/schemas/SuccessResponse'
         - type: object
           properties:
-            data: { $ref: '#/components/schemas/AuthPayload' }
+            data:
+              $ref: '#/components/schemas/AuthPayload'
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        amount:
+          type: integer
+          example: 500
+        currency:
+          type: string
+          example: eur
+        status:
+          type: string
+          enum: [pending, paid, failed]
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    PaymentIntentData:
+      type: object
+      properties:
+        payment:
+          $ref: '#/components/schemas/Payment'
+        simulation:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    SubscriptionStatus:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: admin
+        subscription_status:
+          type: string
+          enum: [free, premium]
+          example: premium
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+
+    WebhookInput:
+      type: object
+      required: [payment_id]
+      properties:
+        payment_id:
+          type: integer
+          minimum: 1
+          example: 1
+
+    WebhookData:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        payment_status:
+          type: string
+          example: paid
+        subscription_status:
+          type: string
+          example: premium
+        simulation:
+          type: boolean
+          example: true

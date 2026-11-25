@@ -762,6 +762,122 @@
               }
             }
           ]
+        },
+        {
+          "name": "Subscriptions & Payments",
+          "item": [
+            {
+              "name": "POST — Créer une intention de paiement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{base_url}}/subscriptions/payment-intent",
+                "description": "Crée une intention de paiement Premium simulée de 500 EUR.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "pm.test('Paiement créé - HTTP 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Paiement en attente', () => pm.expect(res.data.payment.status).to.eql('pending'));",
+                      "pm.test('Simulation activée', () => pm.expect(res.data.simulation).to.be.true);",
+                      "if (res.success && res.data.payment.id) pm.environment.set('payment_id', String(res.data.payment.id));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST — Confirmer le paiement simulé",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "x-simulation-secret",
+                    "value": "{{simulation_secret}}"
+                  }
+                ],
+                "url": "{{base_url}}/webhooks/stripe",
+                "description": "Simule la confirmation du paiement et active l'abonnement Premium.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"payment_id\": {{payment_id}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "pm.test('Paiement confirmé - HTTP 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Paiement payé', () => pm.expect(res.data.payment_status).to.eql('paid'));",
+                      "pm.test('Abonnement Premium activé', () => pm.expect(res.data.subscription_status).to.eql('premium'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "GET — Consulter le statut Premium",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{base_url}}/subscriptions/status",
+                "description": "Consulte le statut de l'abonnement et l'historique des paiements."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "pm.test('Statut récupéré - HTTP 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Abonnement Premium', () => pm.expect(res.data.subscription_status).to.eql('premium'));",
+                      "pm.test('Historique des paiements présent', () => pm.expect(res.data.payments).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     }

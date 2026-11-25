@@ -42,8 +42,11 @@ app.post('/api/v1/auth/login', (req, res) => {
 });
 
 app.use('/api/v1/authors', require('./routes/authors'));
+app.use('/api/v1/books', require('./routes/aiBooks'));
 app.use('/api/v1/books', require('./routes/books'));
 app.use('/api/v1/borrows', require('./routes/borrows'));
+app.use('/api/v1/subscriptions', require('./routes/subscriptions'));
+app.use('/api/v1/webhooks', require('./routes/webhooks'));
 
 app.use((req, res) => fail(res, 404, 'Route introuvable.'));
 app.use((err, req, res, next) => {
